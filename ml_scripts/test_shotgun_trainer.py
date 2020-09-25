@@ -55,7 +55,7 @@ def test_list_size(mymodelsingle):
     assert len(mymodelsingle.data_dict["score"]) == 40
 
 def test_dict_size(mymodelsingle):
-    assert len(mymodelsingle.data_dict) == 3
+    assert len(mymodelsingle.data_dict) == 4
 
 def test_nan(mymodelsingle):
     assert np.all(np.isnan(mymodelsingle.data_dict["score"])) == False
@@ -64,7 +64,7 @@ def test_list_size_multiple(mymodelmultiple):
     assert len(mymodelmultiple.data_dict["score"]) == 80
 
 def test_dict_size_multiple(mymodelmultiple):
-    assert len(mymodelmultiple.data_dict) == 3
+    assert len(mymodelmultiple.data_dict) == 4
 
 def test_nan_multiple(mymodelmultiple):
     assert np.all(np.isnan(mymodelmultiple.data_dict["score"])) == False
