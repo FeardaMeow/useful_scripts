@@ -20,11 +20,13 @@ class try_all_models():
             cv_results = cross_validate(estimator=model_i, X=X, y=y, **self.cv_params)
             try:
                 self.data_dict["score"] += cv_results['train_score'].tolist() + cv_results['test_score'].tolist()
-                self.data_dict["dataset"] += ["train" for i in cv_results['train_score'].tolist()] + ["val" for i in cv_results['test_score'].tolist()]
-                self.data_dict["model"] += [type(model_i).__name__ for i in cv_results['train_score'].tolist() + cv_results['test_score'].tolist()]
+                self.data_dict["dataset"] += ["train" for _ in cv_results['train_score'].tolist()] + ["val" for _ in cv_results['test_score'].tolist()]
+                self.data_dict["model"] += [type(model_i).__name__ for _ in cv_results['train_score'].tolist() + cv_results['test_score'].tolist()]
             except Exception:
-                self.train_scores.append([cv_results['train_' + score_name] for score_name in self.cv_params['scoring']])
-                self.val_scores.append([cv_results['test_' + score_name] for score_name in self.cv_params['scoring']])
+                for score_name in self.cv_params['scoring']:
+                    self.data_dict["score"] += cv_results['train_' + score_name].tolist() + cv_results['test_' + score_name].tolist()
+                    self.data_dict["dataset"] += ["train" for _ in cv_results['train_' + score_name].tolist()] + ["val" for _ in cv_results['test_' + score_name].tolist()]
+                    self.data_dict["model"] += [type(model_i).__name__ for _ in cv_results['train_' + score_name].tolist() + cv_results['test_' + score_name].tolist()]
             
         
     def plot(self):

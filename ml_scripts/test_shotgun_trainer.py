@@ -15,9 +15,15 @@ from sklearn.pipeline import make_pipeline
 ### Setup and toy problem for testing ###
 size = 10000
 
-cv_params = {
+cv_params_single = {
     "cv":10,
     "scoring":"neg_mean_squared_error",
+    "return_train_score":True
+}
+
+cv_params_multiple = {
+    "cv":10,
+    "scoring":('r2', 'neg_mean_squared_error'),
     "return_train_score":True
 }
 
@@ -28,21 +34,38 @@ def mytoydata():
     return  np.reshape(X,(-1,1)), y
 
 @pytest.fixture(scope="module")
-def mytoymodel():
+def mymodelsingle():
     X, y = mytoydata()
     models = [LinearRegression(),make_pipeline(PolynomialFeatures(2),LinearRegression())]
-    trainer = st.try_all_models(models, cv_params)
+    trainer = st.try_all_models(models, cv_params_single)
+    trainer.fit(X,y)
+    return trainer
+
+@pytest.fixture(scope="module")
+def mymodelmultiple():
+    X, y = mytoydata()
+    models = [LinearRegression(),make_pipeline(PolynomialFeatures(2),LinearRegression())]
+    trainer = st.try_all_models(models, cv_params_multiple)
     trainer.fit(X,y)
     return trainer
 
 ### TESTS ###
 
-def test_list_size(mytoymodel):
-    assert len(mytoymodel.data_dict["score"]) == 40
+def test_list_size(mymodelsingle):
+    assert len(mymodelsingle.data_dict["score"]) == 40
 
-def test_dict_size(mytoymodel):
-    assert len(mytoymodel.data_dict) == 3
+def test_dict_size(mymodelsingle):
+    assert len(mymodelsingle.data_dict) == 3
 
-def test_nan(mytoymodel):
-    assert np.all(np.isnan(mytoymodel.data_dict["score"])) == False
+def test_nan(mymodelsingle):
+    assert np.all(np.isnan(mymodelsingle.data_dict["score"])) == False
+
+def test_list_size_multiple(mymodelmultiple):
+    assert len(mymodelmultiple.data_dict["score"]) == 80
+
+def test_dict_size_multiple(mymodelmultiple):
+    assert len(mymodelmultiple.data_dict) == 3
+
+def test_nan_multiple(mymodelmultiple):
+    assert np.all(np.isnan(mymodelmultiple.data_dict["score"])) == False
 
