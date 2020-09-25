@@ -1,6 +1,7 @@
 from sklearn.model_selection import cross_validate
 import seaborn as sns
 from matplotlib import pyplot as plt
+import pandas as pd
 
 class try_all_models():
     
@@ -12,16 +13,19 @@ class try_all_models():
         self.val_scores = []
         self.model_order = []
 
+        self.data_dict = {"model":[],"score":[],"dataset":[]}
+
     def fit(self, X, y):
         for model_i in self.models:
             cv_results = cross_validate(estimator=model_i, X=X, y=y, **self.cv_params)
             try:
-                self.train_scores.append(cv_results['train_score'])
-                self.val_scores.append(cv_results['test_score'])
+                self.data_dict["score"] += cv_results['train_score'].tolist() + cv_results['test_score'].tolist()
+                self.data_dict["dataset"] += ["train" for i in cv_results['train_score'].tolist()] + ["val" for i in cv_results['test_score'].tolist()]
+                self.data_dict["model"] += [type(model_i).__name__ for i in cv_results['train_score'].tolist() + cv_results['test_score'].tolist()]
             except Exception:
                 self.train_scores.append([cv_results['train_' + score_name] for score_name in self.cv_params['scoring']])
                 self.val_scores.append([cv_results['test_' + score_name] for score_name in self.cv_params['scoring']])
-            self.model_order.append(type(model_i).__name__)
+            
         
     def plot(self):
         '''
@@ -38,4 +42,20 @@ class try_all_models():
         plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
         plt.rc('figure', titlesize=BIGGER_SIZE)
         '''
+        
         pass
+
+    def _build_df(self):
+        # train_scores is a list of numpy arrays, where each element in the list corresponds to a models scores
+        # val_scores is a list of numpy arrays, where each element in the list corresponds to a models scores
+        # model_order is a list of model names
+        
+        '''
+        TODO: Unpack data from lists to create a single row for each loss/score for each of the cv runs
+        TODO: Create dataframe with template ["model","loss","]
+        '''
+        # Unpack data into dictionary
+        pass
+
+if __name__ == "__main__":
+    print("hello")

@@ -38,11 +38,11 @@ def mytoymodel():
 ### TESTS ###
 
 def test_list_size(mytoymodel):
-    assert len(mytoymodel.train_scores) == 2
+    assert len(mytoymodel.data_dict["score"]) == 40
 
-def test_cv_size(mytoymodel):
-    assert mytoymodel.train_scores[0].shape[0] == 10
+def test_dict_size(mytoymodel):
+    assert len(mytoymodel.data_dict) == 3
 
 def test_nan(mytoymodel):
-    assert np.all(np.isnan(mytoymodel.train_scores[0])) == False
+    assert np.all(np.isnan(mytoymodel.data_dict["score"])) == False
 
