@@ -16,6 +16,9 @@ def mytoymnist():
 
 ### TESTS ###
 
+def test_tf_version():
+    assert int(tf.__version__.split('.')[0]) >= 2
+
 def test_train_data(mytoymnist):
     assert isinstance(mytoymnist[0], tf.data.Dataset)
 
