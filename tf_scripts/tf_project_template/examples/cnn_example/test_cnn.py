@@ -13,6 +13,11 @@ import cnn_model as cnn
 def mytoymnist():
     return cnn.load_data()
 
+@pytest.fixture(scope="module")
+def mytoymodel():
+    tf.random.set_seed(322)
+    return cnn.build_model((28,28,1))
+
 
 ### TESTS ###
 
@@ -25,3 +30,9 @@ def test_train_data(mytoymnist):
 def test_test_data(mytoymnist):
     assert isinstance(mytoymnist[1], tf.data.Dataset)
 
+def test_cnn_model_output(mytoymodel):
+    np.random.seed(322)
+    assert np.sum(mytoymodel(np.random.uniform(size=(1,28,28,1)).astype(np.float32))) == 1.0
+
+def test_cnn_model_layers(mytoymodel):
+    assert len(mytoymodel.layers) == 13

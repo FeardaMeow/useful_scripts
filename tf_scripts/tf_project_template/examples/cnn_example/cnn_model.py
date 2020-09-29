@@ -2,10 +2,36 @@ import tensorflow as tf
 from tensorflow import keras
 import os
 
+'''
+
+TODO: Finish training model test cases
+TODO: Add in final model assessment
+TODO: Add in logging
+TODO: Add in cleanup after test case checking for files
+TODO: Integrate in hyperband
+'''
+
 # In terminal to start tensorboard, call
 # >tensorboard --logdir=./my_logs --port=6006
 root_logdir = os.path.join(os.curdir, "my_logs")
 
+def build_model(input_shape):
+    input_ = keras.layers.Input(shape=input_shape)
+
+    results = keras.layers.Conv2D(64,7, activation="relu", padding="same")(input_)
+    results = keras.layers.MaxPool2D(2)(results)
+    results = keras.layers.Conv2D(128,3, activation="relu", padding="same")(results)
+    results = keras.layers.Conv2D(128,3, activation="relu", padding="same")(results)
+    results = keras.layers.MaxPool2D(2)(results)
+    results = keras.layers.Conv2D(256,3, activation="relu", padding="same")(results)
+    results = keras.layers.Conv2D(256,3, activation="relu", padding="same")(results)
+    results = keras.layers.MaxPool2D(2)(results)
+    results = keras.layers.Flatten()(results)
+    results = keras.layers.Dense(128, activation="relu")(results)
+    results = keras.layers.Dropout(0.5)(results)
+    results = keras.layers.Dense(10, activation="softmax")(results)
+
+    return keras.Model(inputs=[input_], outputs=[results])
 
 def get_run_logdir():
     import time
@@ -23,7 +49,7 @@ def load_data():
 def main():
     mnist_train, mnist_test = load_data()
     mnist_train = mnist_train.shuffle(10000).batch(32)
-    mnist_train = mnist_train.map(lambda items: (items["image"], items["labels"]))
+    mnist_train = mnist_train.map(lambda items: (items["image"], items["label"]))
     mnist_train = mnist_train.prefetch(1)
 
     model = build_model((28, 28, 1))
