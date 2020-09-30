@@ -2,6 +2,7 @@ from sklearn.model_selection import cross_validate
 import seaborn as sns
 from matplotlib import pyplot as plt
 import pandas as pd
+import os
 
 class try_all_models():
     
@@ -29,9 +30,11 @@ class try_all_models():
                     self.data_dict["dataset"] += ["train" for _ in cv_results['train_' + score_name].tolist()] + ["val" for _ in cv_results['test_' + score_name].tolist()]
                     self.data_dict["model"] += [type(model_i).__name__ for _ in cv_results['train_' + score_name].tolist() + cv_results['test_' + score_name].tolist()]
                     self.data_dict["metric"] += [score_name for _ in cv_results['train_' + score_name].tolist() + cv_results['test_' + score_name].tolist()]
+
+        self._save()
             
         
-    def plot(self, metric):
+    def _plot(self, metric, run_id):
         # Set Font Size
         SMALL_SIZE = 18
         MEDIUM_SIZE = 18
@@ -47,7 +50,17 @@ class try_all_models():
         
         temp_df = pd.DataFrame(data=self.data_dict)
         sns.boxplot(x="model",y="score",hue="dataset",data=temp_df.loc[temp_df['metric'] == metric])
-        plt.show()
+        
+        plt.savefig(run_id+'.png')
+
+    def _save(self):
+        import time
+        run_id = time.strftime("run_%Y_%m_%d-%H_%M_%S")
+        pd.DataFrame(data=self.data_dict).to_csv(run_id+".csv", index=False)
+        try:
+            self._plot(metric=self.cv_params["scoring"], run_id=run_id)
+        except Exception:
+            self._plot(metric=self.cv_params["scoring"][0], run_id=run_id)
 
 def main():
     import numpy as np
@@ -71,7 +84,7 @@ def main():
     trainer = try_all_models(models, cv_params_single)
     trainer.fit(X,y)
     
-    trainer.plot(metric=cv_params_single["scoring"])
+    trainer._plot(metric=cv_params_single["scoring"])
 
 if __name__ == "__main__":
     main()

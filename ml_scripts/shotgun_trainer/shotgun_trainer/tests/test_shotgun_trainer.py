@@ -37,7 +37,7 @@ def mytoydata():
 def mymodelsingle():
     X, y = mytoydata()
     models = [LinearRegression(),make_pipeline(PolynomialFeatures(2),LinearRegression())]
-    trainer = st.try_all_models(models, cv_params_single)
+    trainer = st.try_all_models(models, cv_params=cv_params_single,)
     trainer.fit(X,y)
     return trainer
 
@@ -45,9 +45,16 @@ def mymodelsingle():
 def mymodelmultiple():
     X, y = mytoydata()
     models = [LinearRegression(),make_pipeline(PolynomialFeatures(2),LinearRegression())]
-    trainer = st.try_all_models(models, cv_params_multiple)
+    trainer = st.try_all_models(models, cv_params=cv_params_multiple)
     trainer.fit(X,y)
     return trainer
+
+def teardown_module(module):
+    import os
+    filenames = os.listdir(os.getcwd())
+    for fname in filenames:
+        if fname.endswith('.csv') or fname.endswith('.png'):
+            os.remove(fname)
 
 ### TESTS ###
 
