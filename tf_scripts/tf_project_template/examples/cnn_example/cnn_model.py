@@ -48,15 +48,16 @@ def load_data():
 
 def main():
     mnist_train, mnist_test = load_data()
-    mnist_train = mnist_train.shuffle(10000).batch(32)
+    mnist_train = mnist_train.shuffle(10000).batch(64)
     mnist_train = mnist_train.map(lambda items: (items["image"], items["label"]))
     mnist_train = mnist_train.prefetch(1)
 
     model = build_model((28, 28, 1))
 
     model_compile_params = {
-        "loss":"mse",
-        "optimizer":keras.optimizers.SGD(lr=1e-3)
+        "loss":"sparse_categorical_crossentropy",
+        "optimizer":keras.optimizers.SGD(lr=1e-3),
+        "metrics":[]
     }
     model.compile(**model_compile_params)
 
@@ -67,17 +68,14 @@ def main():
     run_logdir = get_run_logdir()
     tensorboard_cb = keras.callbacks.TensorBoard(run_logdir)
     model_fit_params = {
-        "x":None, 
-        "y":None, 
-        "batch_size":None, 
-        "epochs":1, 
-        "callbacks":None,
-        "validation_data":None
+        "batch_size":64, 
+        "epochs":15, 
+        "callbacks":[checkpoint_cb, early_stopping_cb]
     }
-    model.fit(**model_fit_params)
+    model.fit(mnist_train, **model_fit_params)
 
     # Save final model
     model.save("my_keras_model.h5")
 
 if __name__ == "__main__":
-    pass
+    main()
