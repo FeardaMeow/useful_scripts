@@ -1,8 +1,10 @@
 from sklearn.model_selection import cross_validate
+from sklearn.exceptions import NotFittedError
 import seaborn as sns
 from matplotlib import pyplot as plt
 import pandas as pd
 import os
+from time import strftime
 
 class try_all_models():
     
@@ -10,13 +12,15 @@ class try_all_models():
         self.models = models
         self.cv_params = cv_params
 
-        self.train_scores = []
-        self.val_scores = []
-        self.model_order = []
-
         self.data_dict = {"model":[],"score":[],"dataset":[],"metric":[]}
 
+        self._run_id = None
+        self._fit = False
+
     def fit(self, X, y):
+        self._validate_inputs()
+
+        self._run_id = strftime("run_%Y_%m_%d-%H_%M_%S")
         for model_i in self.models:
             cv_results = cross_validate(estimator=model_i, X=X, y=y, **self.cv_params)
             try:
@@ -30,11 +34,10 @@ class try_all_models():
                     self.data_dict["dataset"] += ["train" for _ in cv_results['train_' + score_name].tolist()] + ["val" for _ in cv_results['test_' + score_name].tolist()]
                     self.data_dict["model"] += [type(model_i).__name__ for _ in cv_results['train_' + score_name].tolist() + cv_results['test_' + score_name].tolist()]
                     self.data_dict["metric"] += [score_name for _ in cv_results['train_' + score_name].tolist() + cv_results['test_' + score_name].tolist()]
-
-        self._save()
             
-        
-    def _plot(self, metric, run_id):
+    def _plot(self, metric, save=False):
+        self._check_fit()
+
         # Set Font Size
         SMALL_SIZE = 18
         MEDIUM_SIZE = 18
@@ -49,18 +52,26 @@ class try_all_models():
         plt.rc('figure', titlesize=BIGGER_SIZE)
         
         temp_df = pd.DataFrame(data=self.data_dict)
-        sns.boxplot(x="model",y="score",hue="dataset",data=temp_df.loc[temp_df['metric'] == metric])
+        sns.lineplot(x="model",y="score",hue="dataset",data=temp_df.loc[temp_df['metric'] == metric])
         
-        plt.savefig(run_id+'.png')
+        if save:
+            plt.savefig(self._run_id+'.png')
 
     def _save(self):
-        import time
-        run_id = time.strftime("run_%Y_%m_%d-%H_%M_%S")
-        pd.DataFrame(data=self.data_dict).to_csv(run_id+".csv", index=False)
+        self._check_fit()
+
+        pd.DataFrame(data=self.data_dict).to_csv(self._run_id+".csv", index=False)
         try:
-            self._plot(metric=self.cv_params["scoring"], run_id=run_id)
+            self._plot(metric=self.cv_params["scoring"])
         except Exception:
-            self._plot(metric=self.cv_params["scoring"][0], run_id=run_id)
+            self._plot(metric=self.cv_params["scoring"][0])
+
+    def _validate_inputs(self):
+        pass
+
+    def _check_fit(self):
+        if self._fit == False:
+            raise NotFittedError('Model has not been fit yet')
 
 def main():
     import numpy as np
@@ -84,7 +95,5 @@ def main():
     trainer = try_all_models(models, cv_params_single)
     trainer.fit(X,y)
     
-    trainer._plot(metric=cv_params_single["scoring"])
-
 if __name__ == "__main__":
     main()
